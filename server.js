@@ -1,34 +1,45 @@
+const express = require('express');
 const { MongoClient } = require('mongodb');
 
-// Connection URL
+const app = express();
+const port = 3000;
+
+// Middleware to parse JSON bodies
+app.use(express.json());
+
+// MongoDB Connection URL and Database Name
 const url = 'mongodb://localhost:27017';
-// Database Name
-const dbName = 'asdasd'; // Make sure this matches your intended database name
+const dbName = 'asdasd'; // Your database name
 
 const client = new MongoClient(url);
 
-async function createCollection() {
+async function getCollection() {
   try {
     await client.connect();
     console.log('Connected successfully to server');
-
     const db = client.db(dbName);
-
-    // Check if the collection exists
-    const collections = await db.listCollections({ name: 'asddwqd' }).toArray();
-    if (collections.length > 0) {
-      console.log('Collection already exists');
-    } else {
-      // Create a collection 
-      const collection = await db.createCollection('asddwqd');
-      console.log('Collection created:', collection.collectionName);
-    }
-
+    return db.collection('asddwqd'); // Your collection name
   } catch (err) {
-    console.error('Error:', err);
-  } finally {
-    await client.close();
+    console.error('Error connecting to MongoDB:', err);
+    throw err;
   }
 }
 
-createCollection();
+// API endpoint to post data to the database
+app.post('/data', async (req, res) => {
+  const data = req.body; // Data from the request body
+
+  try {
+    const collection = await getCollection();
+    const result = await collection.insertOne(data);
+    res.status(201).json({ message: 'Data inserted successfully', id: result.insertedId });
+  } catch (err) {
+    console.error('Error inserting data:', err);
+    res.status(500).json({ message: 'Error inserting data' });
+  }
+});
+
+// Start the server
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});

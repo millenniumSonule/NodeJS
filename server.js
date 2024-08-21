@@ -39,6 +39,10 @@ app.post('/data', async (req, res) => {
   }
 });
 
+app.get('/get', async (req,res)=>{
+    res.send('SEND THE DATA')
+})
+
 // Start the server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
